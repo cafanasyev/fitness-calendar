@@ -1,77 +1,39 @@
 // ---------- Phase definitions ----------
-const PHASES = [
-  { n: 1, name: "Block 1",  color: "var(--p1)", note: "Weeks 1–4 · 6 sets per workout" },
-  { n: 2, name: "Block 2",  color: "var(--p2)", note: "Weeks 5–8 · more reps per set" },
-  { n: 3, name: "Block 3",  color: "var(--p3)", note: "Weeks 9–12 · 7 sets per workout + mid-test" },
-  { n: 4, name: "Block 4",  color: "var(--p4)", note: "Weeks 13–16 · more reps" },
-  { n: 5, name: "Block 5",  color: "var(--p5)", note: "Weeks 17–20 · peak" },
-  { n: 6, name: "Block 6",  color: "var(--p6)", note: "Weeks 21–24 · test + maintain" },
+const PHASE_NOTES = [
+  "6 sets per workout",
+  "more reps per set",
+  "7 sets per workout + mid-test",
+  "more reps",
+  "peak",
+  "test + maintain",
 ];
+const WEEKS_PER_BLOCK = PROGRAM.activeWeeksPerBlock + 1;
+const PHASES = PHASE_NOTES.map((desc, i) => {
+  const n = i + 1;
+  const startWk = i * WEEKS_PER_BLOCK + 1;
+  const endWk   = startWk + WEEKS_PER_BLOCK - 1;
+  return { n, name: "Block " + n, color: "var(--p" + n + ")", note: "Weeks " + startWk + "–" + endWk + " · " + desc };
+});
 function phaseOf(weekN) {
-  if (weekN <= 4)  return PHASES[0];
-  if (weekN <= 8)  return PHASES[1];
-  if (weekN <= 12) return PHASES[2];
-  if (weekN <= 16) return PHASES[3];
-  if (weekN <= 20) return PHASES[4];
-  return PHASES[5];
+  return PHASES[Math.ceil(weekN / WEEKS_PER_BLOCK) - 1];
 }
 
 // ---------- The plan ----------
-// SPLIT: Mon = Push day, Wed = Pull day, Fri = Legs day.
-// Each big muscle group hit ONCE per week — full week of rest.
-// Crunches added to every workout (low-stress muscle, recovers fast).
-const PLAN = [
-  // wk | pushUps | pullUps | squats | crunches | label
-  { wk: 1,  pu: [6, 10], pl: [6, 5],  sq: [6, 15], cr: [3, 15], label: null },
-  { wk: 2,  pu: [6, 11], pl: [6, 6],  sq: [6, 17], cr: [3, 17], label: null },
-  { wk: 3,  pu: [6, 12], pl: [6, 7],  sq: [6, 20], cr: [3, 20], label: null },
-  { wk: 4,  pu: [4, 7],  pl: [4, 3],  sq: [4, 12], cr: [2, 12], label: "Rest week" },
-
-  { wk: 5,  pu: [6, 13], pl: [6, 7],  sq: [6, 22], cr: [3, 20], label: null },
-  { wk: 6,  pu: [6, 14], pl: [6, 8],  sq: [6, 24], cr: [3, 22], label: null },
-  { wk: 7,  pu: [6, 15], pl: [6, 9],  sq: [6, 26], cr: [3, 24], label: null },
-  { wk: 8,  pu: [4, 8],  pl: [4, 4],  sq: [4, 14], cr: [2, 14], label: "Rest week" },
-
-  { wk: 9,  pu: [7, 13], pl: [7, 7],  sq: [7, 22], cr: [3, 22], label: null },
-  { wk: 10, pu: [7, 14], pl: [7, 8],  sq: [7, 24], cr: [3, 24], label: null },
-  { wk: 11, pu: [7, 15], pl: [7, 9],  sq: [7, 26], cr: [3, 25], label: null },
-  { wk: 12, pu: [4, 8],  pl: [4, 4],  sq: [4, 12], cr: [2, 12], label: "Rest + mid-test" },
-
-  { wk: 13, pu: [7, 16], pl: [7, 9],  sq: [7, 26], cr: [3, 25], label: null },
-  { wk: 14, pu: [7, 17], pl: [7, 10], sq: [7, 28], cr: [3, 27], label: null },
-  { wk: 15, pu: [7, 18], pl: [7, 11], sq: [7, 30], cr: [3, 28], label: null },
-  { wk: 16, pu: [4, 11], pl: [4, 6],  sq: [4, 17], cr: [2, 17], label: "Rest week" },
-
-  { wk: 17, pu: [7, 19], pl: [7, 11], sq: [7, 30], cr: [3, 28], label: null },
-  { wk: 18, pu: [7, 20], pl: [7, 12], sq: [7, 32], cr: [3, 30], label: null },
-  { wk: 19, pu: [7, 20], pl: [7, 13], sq: [7, 35], cr: [3, 30], label: null },
-  { wk: 20, pu: [4, 12], pl: [4, 6],  sq: [4, 18], cr: [2, 18], label: "Rest week" },
-
-  { wk: 21, pu: [4, 10], pl: [4, 5],  sq: [4, 15], cr: [2, 15], label: "Full deload" },
-  { wk: 22, test: true,                                              label: "TEST WEEK" },
-  { wk: 23, pu: [7, 18], pl: [7, 11], sq: [7, 30], cr: [3, 28], label: "Maintain" },
-  { wk: 24, pu: [7, 18], pl: [7, 11], sq: [7, 30], cr: [3, 28], label: "Maintain" },
-];
+const PLAN = generatePlan();
 
 // ---------- Build a workout for one day ----------
 function workoutForDay(p, day, label) {
   const isRest = label && /rest|deload/i.test(label);
-  let exName, sets, reps, rest, dayName;
-  if (day === "mon") {
-    exName = "Push-ups";  sets = p.pu[0]; reps = p.pu[1]; rest = "90 seconds"; dayName = "Push";
-  } else if (day === "wed") {
-    exName = "Pull-ups";  sets = p.pl[0]; reps = p.pl[1]; rest = "2 minutes";  dayName = "Pull";
-  } else {
-    exName = "Squats";    sets = p.sq[0]; reps = p.sq[1]; rest = "90 seconds"; dayName = "Legs";
-  }
+  const [key, ex] = Object.entries(EXERCISES).find(([, e]) => e.day === day);
+  const [sets, reps] = p[key];
   return {
     tag: isRest ? "deload" : "strength-a",
-    title: dayName + " day" + (label ? " — " + label : ""),
-    summary: exName + " · Crunches",
+    title: ex.dayName + " day" + (label ? " — " + label : ""),
+    summary: ex.name + " · Crunches",
     details: [
       ["Warm-up", "5 minutes light movement — arm swings, leg swings, easy push-ups"],
-      [exName, sets + " sets of " + reps + " reps · rest " + rest],
-      ["Crunches", p.cr[0] + " sets of " + p.cr[1] + " reps · rest 60 seconds"],
+      [ex.name, sets + " sets of " + reps + " reps · rest " + ex.restPeriod],
+      ["Crunches", p.cr[0] + " sets of " + p.cr[1] + " reps · rest " + EXERCISES.cr.restPeriod],
       ["Cool-down", "5 minutes stretching"],
     ],
     note: isRest
@@ -152,12 +114,6 @@ for (const p of PLAN) {
   }
 }
 
-// ---------- Off-day templates (fallbacks) ----------
-function tuesday() { return walkDay(); }
-function thursday() { return jumpRopeDay(); }
-function saturday() { return restDay(); }
-function sunday() { return restDay(); }
-
 // ---------- Date helpers ----------
 function toISO(d) {
   return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
@@ -195,12 +151,12 @@ function buildWeekSessions(weekN) {
   const w = WEEKS[weekN];
   return {
     mon: w.mon_override || w.mon,
-    tue: w.tue_override || tuesday(),
+    tue: w.tue_override || walkDay(),
     wed: w.wed_override || w.wed,
-    thu: w.thu_override || thursday(weekN),
+    thu: w.thu_override || jumpRopeDay(),
     fri: w.fri_override || w.fri,
-    sat: w.sat_override || saturday(),
-    sun: w.sun_override || sunday(),
+    sat: w.sat_override || restDay(),
+    sun: w.sun_override || restDay(),
   };
 }
 
@@ -209,7 +165,7 @@ function render(startMonday) {
   cal.innerHTML = "";
   const today = new Date(); today.setHours(0,0,0,0);
   let currentPhase = 0;
-  for (let wn = 1; wn <= 24; wn++) {
+  for (let wn = 1; wn <= PLAN.length; wn++) {
     const phase = phaseOf(wn);
     if (phase.n !== currentPhase) {
       currentPhase = phase.n;
@@ -255,9 +211,7 @@ function render(startMonday) {
 
 function tagLabel(t) {
   if (!t) return "";
-  if (t === "strength-a") return "Workout";
-  if (t === "strength-b") return "Workout";
-  if (t === "strength-c") return "Workout";
+  if (t.startsWith("strength")) return "Workout";
   if (t === "mob")    return "Walk";
   if (t === "car")    return "Jump rope";
   if (t === "play")   return "Play";
