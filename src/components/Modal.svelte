@@ -91,7 +91,7 @@
 
 <style>
   .future-toast {
-    position: absolute; bottom: 20px; left: 50%; translate: -50% 0;
+    position: fixed; bottom: 20px; left: 50%; translate: -50% 0;
     background: #333; color: #fff;
     padding: 10px 18px; border-radius: 8px;
     font-size: 13px; white-space: nowrap;
