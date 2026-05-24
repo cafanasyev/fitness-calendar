@@ -31,7 +31,7 @@
   function gestureAction(node, idx) {
     const onWheel = e => {
       e.preventDefault();
-      inputs[idx] = Math.max(1, Math.min(99, inputs[idx] + (e.deltaY < 0 ? 1 : -1)));
+      inputs[idx] = Math.max(0, Math.min(99, inputs[idx] + (e.deltaY < 0 ? 1 : -1)));
     };
     node.addEventListener('wheel', onWheel, { passive: false });
 
@@ -44,7 +44,7 @@
       if (touchStartY === undefined) return;
       e.preventDefault();
       const delta = Math.round((touchStartY - e.touches[0].clientY) / 8);
-      inputs[idx] = Math.max(1, Math.min(99, touchStartVal + delta));
+      inputs[idx] = Math.max(0, Math.min(99, touchStartVal + delta));
     };
     const onTouchEnd = () => { touchStartY = undefined; };
     node.addEventListener('touchstart',  onTouchStart, { passive: true });
@@ -83,7 +83,7 @@
           type="number"
           class="log-set-input"
           bind:value={inputs[i]}
-          min="1"
+          min="0"
           max="99"
           placeholder="—"
           use:gestureAction={i}
