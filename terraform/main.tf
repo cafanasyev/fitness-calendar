@@ -161,6 +161,12 @@ resource "google_project_iam_member" "rules_admin" {
   member  = "serviceAccount:${google_service_account.github_actions.email}"
 }
 
+resource "google_project_iam_member" "service_usage_viewer" {
+  project = google_firebase_project.default.project
+  role    = "roles/serviceusage.serviceUsageConsumer"
+  member  = "serviceAccount:${google_service_account.github_actions.email}"
+}
+
 resource "google_service_account_iam_member" "wif_binding" {
   service_account_id = google_service_account.github_actions.name
   role               = "roles/iam.workloadIdentityUser"
