@@ -43,11 +43,9 @@ This step cannot be automated. Firebase auto-creates the OAuth client when you f
 
 From `terraform output`, copy and add to **GitHub → Settings → Secrets and variables → Actions**:
 
-Secrets:
+Variables (not secrets — none of these are sensitive):
 - `WIF_PROVIDER` — value of `terraform output wif_provider`
 - `WIF_SERVICE_ACCOUNT` — value of `terraform output wif_service_account`
-
-Variable (not secret — it's not sensitive):
 - `FIREBASE_PROJECT_ID` — value of `terraform output project_id`
 
 ### 5. Deploy

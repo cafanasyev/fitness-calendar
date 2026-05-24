@@ -142,7 +142,7 @@ resource "google_iam_workload_identity_pool_provider" "github" {
     "attribute.ref"        = "assertion.ref"
   }
 
-  attribute_condition = "assertion.repository == 'cafanasyev/fitness-calendar' && assertion.ref == 'refs/heads/master'"
+  attribute_condition = "assertion.repository == '${var.github_repo}' && assertion.ref == 'refs/heads/master'"
 
   oidc {
     issuer_uri = "https://token.actions.githubusercontent.com"
@@ -170,7 +170,7 @@ resource "google_project_iam_member" "service_usage_viewer" {
 resource "google_service_account_iam_member" "wif_binding" {
   service_account_id = google_service_account.github_actions.name
   role               = "roles/iam.workloadIdentityUser"
-  member             = "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.github.name}/attribute.repository/cafanasyev/fitness-calendar"
+  member             = "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.github.name}/attribute.repository/${var.github_repo}"
 }
 
 resource "local_file" "firebaserc" {

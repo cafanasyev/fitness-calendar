@@ -13,3 +13,8 @@ variable "region" {
   type        = string
   default     = "us-central1"
 }
+
+variable "github_repo" {
+  description = "GitHub repository in owner/name format (e.g. yourname/fitness-calendar)"
+  type        = string
+}
