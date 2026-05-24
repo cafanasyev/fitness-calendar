@@ -1,2 +1,24 @@
 # Claude Code local config
 .claude/
+
+# Firebase
+firebase-config.js
+.firebase
+.firebaserc
+*.log
+
+# Terraform
+terraform/.terraform/
+terraform/*.tfstate
+terraform/*.tfstate.backup
+terraform/terraform.tfvars
+
+# Firebase emulator
+emulator-data/
+
+# Node / Vite
+node_modules/
+dist/
+
+# Visual brainstorming sessions
+.superpowers/

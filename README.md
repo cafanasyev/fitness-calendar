@@ -1,26 +1,83 @@
 # Fitness Calendar
 
-Personal 6-month bodyweight workout calendar. Static site, hosted on GitHub Pages.
+Personal 6-month bodyweight workout calendar. Hosted on Firebase Hosting.
 
-URL: https://<your-username>.github.io/<your-repo>/index.html
+URL: `https://<project-id>.web.app`
 
-## First-time setup (manual)
+---
 
-1. Sign in at github.com.
-2. Fork the repository.
-3. Apply changes you like.
-4. **Settings** → **Pages**.
-5. Source: **Deploy from a branch**. Branch: `main` / `(root)`. Save.
-6. Wait 1–2 minutes. Live URL appears at the top.
+## Setup
 
-After setup, replace `<your-username>` and `<your-repo>` in the URL line above with your actual values.
+### 1. Prerequisites
 
+Install tools:
+- [Node.js 24+](https://nodejs.org/)
+- [Terraform](https://developer.hashicorp.com/terraform/install)
+- gcloud CLI: [install guide](https://docs.cloud.google.com/sdk/docs/install-sdk)
 
-## Files
+```sh
+make install   # installs firebase-tools globally and npm dependencies
+make auth      # authenticates gcloud
+```
 
-- `index.html` — the page
-- `styles.css` — styling
-- `app.js` — workout data + render logic
-- `icons.js` — exercise icons
-- `fitness-plan.md` — plain-text reference of the workout plan
-- `Makefile` — `make deploy` helper
+### 2. Provision infrastructure
+
+```sh
+cp terraform/terraform.tfvars.example terraform/terraform.tfvars
+# Edit terraform/terraform.tfvars:
+#   billing_account_id — find at console.cloud.google.com/billing
+#   project_id         — pick a globally unique name (e.g. fitness-cal-yourname); Terraform creates it
+make tf-init
+make tf-apply
+```
+
+`make tf-apply` creates the GCP project, enables Firebase, sets up Firestore, Hosting, and Workload Identity Federation for GitHub Actions.
+
+### 3. Enable Google Sign-In (one manual step)
+
+Firebase Console → your project → **Authentication → Sign-in method → Google → Enable**
+
+This step cannot be automated. Firebase auto-creates the OAuth client when you first enable Google Sign-In in the console; automating it would require storing the OAuth client credentials in Terraform, which introduces secrets and defeats the purpose.
+
+### 4. Add GitHub Actions secrets and variable
+
+From `terraform output`, copy and add to **GitHub → Settings → Secrets and variables → Actions**:
+
+Secrets:
+- `WIF_PROVIDER` — value of `terraform output wif_provider`
+- `WIF_SERVICE_ACCOUNT` — value of `terraform output wif_service_account`
+
+Variable (not secret — it's not sensitive):
+- `FIREBASE_PROJECT_ID` — value of `terraform output project_id`
+
+### 5. Deploy
+
+**Automatic:** Push to `master` — GitHub Actions runs and deploys.
+
+**Manual:**
+```sh
+firebase login   # first time only
+make deploy      # runs `vite build` then `firebase deploy`
+```
+
+---
+
+## Local development
+
+Run two terminals:
+
+**Run Vite dev server abd local dev Firebase emulators and:**
+```sh
+make dev-ui
+make dev-firebase
+```
+
+- App: `http://localhost:5173` (Vite dev server)
+- Emulator UI: `http://localhost:4000` — create test users, inspect Firestore data
+
+The Vite dev server proxies `/__/` to the Firebase hosting emulator (port 5000), so `/__/firebase/init.js` SDK auto-config works without any manual setup.
+
+First run starts with no data and saves state to `emulator-data/` on exit (gitignored).
+Subsequent runs restore the previous session's data automatically.
+
+---

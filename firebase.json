@@ -1,0 +1,28 @@
+{
+  "hosting": {
+    "public": "dist",
+    "ignore": [
+      "terraform/**",
+      "node_modules/**",
+      "docs/**",
+      ".github/**",
+      "*.md",
+      "*.test.js",
+      ".gitignore",
+      ".firebaserc",
+      "firebase.json",
+      "LICENSE",
+      "Makefile",
+      "terraform.rules"
+    ]
+  },
+  "firestore": {
+    "rules": "terraform.rules"
+  },
+  "emulators": {
+    "auth":      { "port": 9099 },
+    "firestore": { "port": 8080 },
+    "hosting":   { "port": 5000 },
+    "ui":        { "enabled": true, "port": 4000 }
+  }
+}
