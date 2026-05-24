@@ -27,6 +27,7 @@ cp terraform/terraform.tfvars.example terraform/terraform.tfvars
 # Edit terraform/terraform.tfvars:
 #   billing_account_id — find at console.cloud.google.com/billing
 #   project_id         — pick a globally unique name (e.g. fitness-cal-yourname); Terraform creates it
+#   github_repo        — your github account name and repository name (e.g. john/fitness-calendar-abcd)
 make tf-init
 make tf-apply
 ```
@@ -64,7 +65,7 @@ make deploy      # runs `vite build` then `firebase deploy`
 
 Run two terminals:
 
-**Run Vite dev server abd local dev Firebase emulators and:**
+**Run Vite dev server and local dev Firebase emulators:**
 ```sh
 make dev-ui
 make dev-firebase
