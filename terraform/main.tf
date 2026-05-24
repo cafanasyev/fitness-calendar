@@ -73,7 +73,7 @@ resource "google_firebase_web_app" "default" {
 resource "google_firestore_database" "default" {
   project     = google_firebase_project.default.project
   name        = "(default)"
-  location_id = "nam5"
+  location_id = var.region
   type        = "FIRESTORE_NATIVE"
 
   depends_on = [google_firebase_project.default]

@@ -1,3 +1,4 @@
 billing_account_id = "XXXXXX-XXXXXX-XXXXXX"
 project_id         = "fitness-cal-abc123"
 github_repo        = "yourname/fitness-calendar"
+region             = "europe-central2"

@@ -2,10 +2,7 @@
   import { PROGRAM, EXERCISES, generatePlan } from './lib/progression.js';
   import { addDays, toISO, fromISO, startOfWeekMonday } from './lib/dates.js';
   import { autoSkipPast } from './lib/schedule.js';
-  import {
-    signIn, signOut, onAuthChange,
-    loadProgress, saveStartDate, saveAutoSkips, saveWorkout,
-  } from './lib/firebase.js';
+  let fb = $state(null);
   import { computeEffectivePlan } from './lib/plan-adjustment.js';
   import Header from './components/Header.svelte';
   import Calendar from './components/Calendar.svelte';
@@ -154,7 +151,7 @@
   function setStart(d) {
     currentStart = d;
     localStorage.setItem('fitness.startDate', toISO(d));
-    if (currentUser) saveStartDate(toISO(d)).catch(() => {});
+    if (currentUser) fb?.saveStartDate(toISO(d)).catch(() => {});
     scrollToToday();
   }
 
@@ -189,7 +186,7 @@
   }
 
   async function handleWorkoutSaved(weekN, dKey, status, actual) {
-    await saveWorkout(weekN, dKey, status, actual);
+    await fb.saveWorkout(weekN, dKey, status, actual);
     const entry = { status };
     if (actual) entry.actual = actual;
     progress.workouts[weekN + '-' + dKey] = entry;
@@ -197,28 +194,33 @@
   }
 
   // ---------- Boot ----------
-  onAuthChange(async (user) => {
-    currentUser = user;
-    if (user) {
-      progress = await loadProgress();
-      if (progress.startDate) {
-        currentStart = fromISO(progress.startDate);
-        localStorage.setItem('fitness.startDate', progress.startDate);
-      } else {
-        await saveStartDate(toISO(currentStart));
-      }
-      const startISO = progress.startDate || toISO(currentStart);
-      const toSkip = autoSkipPast(startISO, progress.workouts, today);
-      if (toSkip.length) {
-        await saveAutoSkips(toSkip);
-        for (const { weekN, dayKey } of toSkip) {
-          progress.workouts[weekN + '-' + dayKey] = { status: 'skipped' };
+  $effect(() => {
+    import('./lib/firebase.js').then(m => {
+      fb = m;
+      m.onAuthChange(async (user) => {
+        currentUser = user;
+        if (user) {
+          progress = await m.loadProgress();
+          if (progress.startDate) {
+            currentStart = fromISO(progress.startDate);
+            localStorage.setItem('fitness.startDate', progress.startDate);
+          } else {
+            await m.saveStartDate(toISO(currentStart));
+          }
+          const startISO = progress.startDate || toISO(currentStart);
+          const toSkip = autoSkipPast(startISO, progress.workouts, today);
+          if (toSkip.length) {
+            await m.saveAutoSkips(toSkip);
+            for (const { weekN, dayKey } of toSkip) {
+              progress.workouts[weekN + '-' + dayKey] = { status: 'skipped' };
+            }
+          }
+          scrollToToday();
+        } else {
+          progress = { workouts: {} };
         }
-      }
-      scrollToToday();
-    } else {
-      progress = { workouts: {} };
-    }
+      });
+    });
   });
 </script>
 
@@ -228,8 +230,8 @@
   phases={PHASES}
   {devToday}
   onStartChange={d => setStart(startOfWeekMonday(fromISO(d)))}
-  {signIn}
-  {signOut}
+  signIn={() => fb?.signIn()}
+  signOut={() => fb?.signOut()}
   onTodayClick={scrollToToday}
   onDevTodayChange={v => {
     devToday = v;

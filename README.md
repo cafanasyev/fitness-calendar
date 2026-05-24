@@ -28,6 +28,7 @@ cp terraform/terraform.tfvars.example terraform/terraform.tfvars
 #   billing_account_id — find at console.cloud.google.com/billing
 #   project_id         — pick a globally unique name (e.g. fitness-cal-yourname); Terraform creates it
 #   github_repo        — your github account name and repository name (e.g. john/fitness-calendar-abcd)
+#   region             — GCP region for Firestore and infrastructure (e.g. europe-central2 for Warsaw)
 make tf-init
 make tf-apply
 ```
